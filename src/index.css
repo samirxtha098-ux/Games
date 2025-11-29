@@ -1,0 +1,185 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap');
+
+:root {
+  --red: #ff5555;
+  --yellow: #ffcc00;
+  --green: #55aa55;
+  --blue: #5555ff;
+  --black: #1a1a1a;
+  --bg-gradient: linear-gradient(135deg, #1e1e2f 0%, #2d2d44 100%);
+}
+
+body {
+  margin: 0;
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg-gradient);
+  color: white;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+#root {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Card Styles */
+.card {
+  background-color: white; /* Fallback */
+  border: 2px solid white;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  transition: all 0.2s ease;
+}
+
+.card.red { background: linear-gradient(135deg, #ff5555, #cc0000); }
+.card.yellow { background: linear-gradient(135deg, #ffcc00, #ffaa00); }
+.card.green { background: linear-gradient(135deg, #55aa55, #008800); }
+.card.blue { background: linear-gradient(135deg, #5555ff, #0000cc); }
+.card.black { background: linear-gradient(135deg, #333, #000); }
+
+.shadow-text {
+  text-shadow: 2px 2px 0px rgba(0,0,0,0.2);
+}
+
+/* Layout Utilities */
+.game-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: space-between;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.board-area {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+  perspective: 1000px;
+}
+
+.deck-pile, .discard-pile {
+  position: relative;
+  width: 120px; /* w-24 is 6rem = 96px, let's make it slightly bigger or match */
+}
+
+/* Player Hand */
+.hand-container {
+  display: flex;
+  justify-content: center;
+  gap: -40px; /* Overlap cards */
+  padding: 20px;
+  overflow-x: auto;
+  min-height: 160px;
+}
+
+.hand-container .card {
+  margin-left: -30px; /* Overlap */
+  transition: transform 0.3s ease, margin 0.3s ease;
+}
+
+.hand-container .card:first-child {
+  margin-left: 0;
+}
+
+.hand-container .card:hover {
+  transform: translateY(-20px) scale(1.1);
+  z-index: 10;
+  margin-right: 20px; /* Make space */
+}
+
+/* Opponent Hand (Top) */
+.opponent-hand {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  padding: 10px;
+}
+
+.card-back {
+  background: linear-gradient(135deg, #1a1a1a 0%, #333 100%);
+  border: 2px solid white;
+  border-radius: 8px;
+  width: 60px;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-back::after {
+  content: 'UNO';
+  color: var(--red);
+  font-weight: 900;
+  font-size: 1.2rem;
+  transform: rotate(-25deg);
+  text-shadow: 1px 1px 0 white;
+}
+
+/* Buttons */
+.btn {
+  background: linear-gradient(90deg, #ff5555, #ff8888);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 50px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(255, 85, 85, 0.4);
+  transition: transform 0.2s;
+}
+
+.btn:hover {
+  transform: scale(1.05);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Animations */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.current-turn {
+  animation: pulse 2s infinite;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.color-picker {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.9);
+  padding: 20px;
+  border-radius: 20px;
+  z-index: 100;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.color-btn {
+  width: 80px;
+  height: 80px;
+  border-radius: 10px;
+  border: 2px solid white;
+  cursor: pointer;
+}
+
+.color-btn.red { background: var(--red); }
+.color-btn.yellow { background: var(--yellow); }
+.color-btn.green { background: var(--green); }
+.color-btn.blue { background: var(--blue); }
