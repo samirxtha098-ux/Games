@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Uno Multiplayer Game 🎮
 
 A real-time multiplayer UNO card game built with React and Socket.io!
@@ -119,3 +120,6 @@ Pull requests are welcome!
 
 ---
 Made with ❤️ using React and Socket.io
+=======
+# Game
+>>>>>>> b1dd0bdecf7ad8c32dcac27167c51a8be1327eb3
