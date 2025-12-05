@@ -1,5 +1,3 @@
-name = "uno-game"
+name = "games"
 compatibility_date = "2025-12-05"
-
-[site]
-bucket = "./dist"
+pages_build_output_dir = "./dist"
