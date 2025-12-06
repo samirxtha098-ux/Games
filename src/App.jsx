@@ -24,8 +24,10 @@ const App = () => {
   const [direction, setDirection] = useState(1);
   const [currentColor, setCurrentColor] = useState('');
   const [winner, setWinner] = useState(null);
+  const [drawPenalty, setDrawPenalty] = useState(0);
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const [statusMessage, setStatusMessage] = useState('Welcome');
+  const [connectionStatus, setConnectionStatus] = useState('connecting');
 
   // Refs for state that needs to be accessed in socket listeners
   const gameStateRef = useRef({});
@@ -38,21 +40,35 @@ const App = () => {
   useEffect(() => {
     socket.on('connect', () => {
       setMyPlayerId(socket.id);
+      setConnectionStatus('connected');
+      console.log('Connected to server:', socket.id);
+    });
+
+    socket.on('disconnect', () => {
+      setConnectionStatus('disconnected');
+      console.log('Disconnected from server');
+    });
+
+    socket.on('connect_error', (error) => {
+      setConnectionStatus('error');
+      console.error('Connection error:', error);
+    });
+
+    socket.on('error', (message) => {
+      alert(`Error: ${message}`);
+      console.error('Server error:', message);
     });
 
     socket.on('room_created', ({ roomId, players }) => {
       setRoomData({ roomId, isHost: true });
       setPlayers(players);
       setGameState('waiting');
+      console.log('Room created:', roomId);
     });
 
     socket.on('player_joined', (updatedPlayers) => {
       setPlayers(updatedPlayers);
       soundManager.playDraw(); // Sound effect for join
-      if (gameState === 'lobby') {
-        setRoomData(prev => ({ ...prev, isHost: false })); // If I just joined
-        setGameState('waiting');
-      }
     });
 
     socket.on('game_started', (initialState) => {
@@ -62,12 +78,31 @@ const App = () => {
       setCurrentPlayerIndex(initialState.currentPlayerIndex);
       setDirection(initialState.direction);
       setCurrentColor(initialState.currentColor);
+      setDrawPenalty(initialState.drawPenalty || 0);
       setGameState('playing');
       soundManager.playUno(); // Start sound
     });
 
     socket.on('game_update', ({ action, data }) => {
-      handleRemoteAction(action, data);
+      // Inline remote action handling to avoid hoisting issues
+      if (action === 'play_card') {
+        setPlayers(data.players);
+        setDiscardPile(prev => [...prev, data.card]);
+        setCurrentPlayerIndex(data.nextPlayer);
+        setDirection(data.nextDirection);
+        setCurrentColor(data.nextColor);
+        setDrawPenalty(data.nextDrawPenalty || 0);
+        soundManager.playCardFlip();
+      } else if (action === 'draw_card') {
+        setPlayers(data.players);
+        setCurrentPlayerIndex(data.nextPlayer);
+        setDrawPenalty(data.nextDrawPenalty || 0);
+        soundManager.playDraw();
+      } else if (action === 'win') {
+        setWinner(data.winnerName);
+        setGameState('gameover');
+        soundManager.playWin();
+      }
     });
 
     socket.on('state_synced', (state) => {
@@ -82,6 +117,9 @@ const App = () => {
 
     return () => {
       socket.off('connect');
+      socket.off('disconnect');
+      socket.off('connect_error');
+      socket.off('error');
       socket.off('room_created');
       socket.off('player_joined');
       socket.off('game_started');
@@ -124,37 +162,6 @@ const App = () => {
     };
 
     socket.emit('start_game', { roomId: roomData.roomId, initialGameState: initialState });
-  };
-
-  const handleRemoteAction = (action, data) => {
-    // Apply action locally to keep UI in sync
-    // In a real app, we might wait for server confirmation, but here we trust the broadcast
-    if (action === 'play_card') {
-      const { playerIndex, card, nextPlayer, nextDirection, nextColor, newDeckCount } = data;
-      
-      setPlayers(prev => {
-        const newP = [...prev];
-        // We don't know which card exactly if it's not us, but we can remove *a* card or sync hand
-        // For simplicity, we just sync the hand length or if we passed the full players array
-        // Ideally, we passed the updated players array (with hidden hands for others?)
-        // Let's assume 'data' contains the updated players array for simplicity
-        return data.players;
-      });
-      setDiscardPile(prev => [...prev, card]);
-      setCurrentPlayerIndex(nextPlayer);
-      setDirection(nextDirection);
-      setCurrentColor(nextColor);
-      soundManager.playCardFlip();
-    } else if (action === 'draw_card') {
-      const { players: updatedPlayers, nextPlayer, deckCount } = data;
-      setPlayers(updatedPlayers);
-      setCurrentPlayerIndex(nextPlayer);
-      soundManager.playDraw();
-    } else if (action === 'win') {
-      setWinner(data.winnerName);
-      setGameState('gameover');
-      soundManager.playWin();
-    }
   };
 
   // Local Action Handlers
@@ -303,7 +310,7 @@ const App = () => {
 
   // Render
   if (gameState === 'lobby') {
-    return <Lobby onCreateRoom={handleCreateRoom} onJoinRoom={handleJoinRoom} />;
+    return <Lobby onCreateRoom={handleCreateRoom} onJoinRoom={handleJoinRoom} connectionStatus={connectionStatus} />;
   }
 
   if (gameState === 'waiting') {

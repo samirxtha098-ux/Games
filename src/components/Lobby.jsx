@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 
-const Lobby = ({ onCreateRoom, onJoinRoom }) => {
+const Lobby = ({ onCreateRoom, onJoinRoom, connectionStatus }) => {
   const [playerName, setPlayerName] = useState('');
   const [roomId, setRoomId] = useState('');
   const [mode, setMode] = useState('menu'); // menu, join
