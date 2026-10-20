@@ -71,6 +71,10 @@ const App = () => {
       soundManager.playDraw(); // Sound effect for join
     });
 
+    socket.on('player_left', (updatedPlayers) => {
+      setPlayers(updatedPlayers);
+    });
+
     socket.on('game_started', (initialState) => {
       setDeck(initialState.deck);
       setDiscardPile(initialState.discardPile);
@@ -122,6 +126,7 @@ const App = () => {
       socket.off('error');
       socket.off('room_created');
       socket.off('player_joined');
+      socket.off('player_left');
       socket.off('game_started');
       socket.off('game_update');
       socket.off('state_synced');
@@ -399,7 +404,10 @@ const App = () => {
           alignItems: 'center', justifyContent: 'center', zIndex: 200
         }}>
           <h1 style={{ fontSize: '5rem', color: '#ffcc00' }}>{winner} WINS!</h1>
-          <button className="btn" onClick={() => window.location.reload()}>Back to Lobby</button>
+          <div style={{ display: 'flex', gap: '20px' }}>
+            <button className="btn" onClick={() => setGameState('waiting')}>Back to Room</button>
+            <button className="btn" onClick={() => window.location.reload()}>Leave Room</button>
+          </div>
         </div>
       )}
     </div>
